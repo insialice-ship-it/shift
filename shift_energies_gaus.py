@@ -47,10 +47,10 @@ def convolution(nom_fichier, fwhm, shift):
 	donnees = lire_fichier_donnees(nom_fichier)
 	for i in range (len(donnees)):
 		intensite.append(donnees[i][1])
-	pas=longueur_onde[1]-longueur-onde[0]
+	pas=longueur_onde[1]-longueur_onde[0]
 	sigma_pixel =fwhm/2.355/pas
 	
-	intensite_convoluee = gaussian_filter1d(intensite, sigma)
+	intensite_convoluee = gaussian_filter1d(intensite, sigma_pixel)
 	
 	plt.plot(longueur_onde, intensite, label="Original")
 	plt.plot(longueur_onde, intensite_convoluee, label=f"Convolué (FWHM={fwhm}nm)", color='red')
