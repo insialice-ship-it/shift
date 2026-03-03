@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter1d
-
+import sys
 
 def lire_fichier_donnees(nom_fichier):
     donnees_nettoyees = []
@@ -26,7 +24,7 @@ def lire_fichier_donnees(nom_fichier):
         print(f"Erreur : Le fichier '{nom_fichier}' est introuvable.")
         return []
 
-def decalage(nom_fichier, shift):
+def decalage(nom_fichier, decalage):
 	donnees = lire_fichier_donnees(nom_fichier)
 	h=6.626*10**(-34)
 	c=3*10**8
@@ -37,28 +35,20 @@ def decalage(nom_fichier, shift):
 
 	for i in range (len(donnees)):
 		energies.append(h*c*10**(9)/donnees[i][0]/(1.6*10**(-19)))
-		energies_decalees.append(energies[i]+shift)
+		energies_decalees.append(energies[i]+decalage)
 		lambdas_decalees.append(h*c*10**(9)/(1.6*(10**(-19)*energies_decalees[i])))
-	return lambdas_decalees
+		donnees[i][0]=lambdas_decalees[i]
+	return donnees
 
-def convolution(nom_fichier, fwhm, shift):
-	longueur_onde = decalage(nom_fichier, shift)
-	intensite = []
-	donnees = lire_fichier_donnees(nom_fichier)
-	for i in range (len(donnees)):
-		intensite.append(donnees[i][1])
-	pas=longueur_onde[1]-longueur_onde[0]
-	sigma_pixel =fwhm/2.355/pas
-	
-	intensite_convoluee = gaussian_filter1d(intensite, sigma_pixel)
-	
-	plt.plot(longueur_onde, intensite, label="Original")
-	plt.plot(longueur_onde, intensite_convoluee, label=f"Convolué (FWHM={fwhm}nm)", color='red')
-	plt.xlabel("Longueur d'onde (nm)")
-	plt.ylabel("Intensité")
-	plt.legend()
-	plt.grid(True)
-	plt.show()
-
-convolution ("cdspectrum", 2, 0.5)
+try:
+    shift = float(sys.argv[1])
+    print(f"shift = {shift} eV")
+except (IndexError, ValueError):
+    # Valeur par défaut si tu oublies de taper le chiffre
+    shift = -0.5
+    print(f"Aucune valeur saisie, utilisation du shift par défaut : {shift} eV")
+    
+donnees_decalees=decalage("cdspectrum", shift)
+print (donnees_decalees)
+np.savetxt("cdspectrum_shifted", donnees_decalees, delimiter=" ")
 
