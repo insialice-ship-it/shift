@@ -34,8 +34,8 @@ def lire_fichier_donnees(nom_fichier):
         print(f"Erreur : Le fichier '{nom_fichier}' est introuvable.")
         return []
         
-t1 = lire_fichier_donnees(nom_fichier1)
-t2 = lire_fichier_donnees(nom_fichier2)
+t1 = lire_fichier_donnees(cdspectrum1)
+t2 = lire_fichier_donnees(cdspectrum2)
 
 #calcul des poids de Boltzmann
 E-min = min(E1,E2)
