@@ -1,3 +1,8 @@
+#Imput : 'cdspectrum_shifted_calcul240' a txt with a wavelengh and intensity columns
+#	 'exp.csv' experimental data
+#Argument : FWHM parameter un eV (defaulting to eV if not specified)
+#Output : 'convolution_calcul240.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os

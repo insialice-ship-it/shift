@@ -1,10 +1,15 @@
+#Imput : 'cdspectrum_shifted' a txt with a wavelengh and intensity columns
+#	 'exp.csv' experimental data
+#Argument : FWHM parameter un eV (defaulting to eV if not specified)
+#Output : 'convolution.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys #
 import pandas as pd
 
-# --- 1. Paramètres ---
+# Paramètres
 hc = 1239.842  # Constante de conversion nm <-> eV
 fwhm_ev = 0.3  # Ta valeur d'entrée en eV
 
@@ -21,13 +26,12 @@ except (IndexError, ValueError):
 # Note : La formule standard est exp(-0.5 * (delta/sigma)**2)
 sigma_ev = fwhm_ev / (2 * np.sqrt(2 * np.log(2)))
 
-# --- 2. Chargement des données ---
-# Assure-toi que le fichier 'cdspectrum_shifted' est dans le même dossier
+# Chargement des données
 data = np.loadtxt('cdspectrum_shifted')
 x_data = data[:, 0]  # Longueurs d'onde (nm)
 y_data = data[:, 1]  # Intensités
 
-#Chargement des données expérimentales (.csv) ---
+# Chargement des données expérimentales (.csv) 
 try:
     # sep=None avec engine='python' détecte automatiquement , ou ;
     df_exp = pd.read_csv('exp.csv', sep=None, engine='python')
@@ -42,13 +46,13 @@ except Exception as e:
     has_exp = False
     
    
-# --- 3. Préparation de la grille ---
+# Préparation de la grille
 x_grid_nm = np.linspace(min(x_data) - 20, max(x_data) + 20, 1000)
 # On convertit la grille en eV pour que le sigma_ev soit applicable
 x_grid_ev = hc / x_grid_nm
 y_convoluted = np.zeros_like(x_grid_nm)
 
-# --- 4. Calcul de la convolution ---
+# Calcul de la convolution
 for lambda_i, y_i in zip(x_data, y_data):
     # Position du pic en eV
     energy_i = hc / lambda_i
@@ -58,7 +62,7 @@ for lambda_i, y_i in zip(x_data, y_data):
     gauss = y_i * np.exp(-0.5 * ((x_grid_ev - energy_i) / sigma_ev)**2)
     y_convoluted += gauss
 
-# --- 5. Affichage ---
+# Affichage
 plt.figure(figsize=(8, 6))
 
 # Bâtons originaux
