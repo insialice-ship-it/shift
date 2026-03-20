@@ -1,3 +1,7 @@
+#Input: 'cdspectrum' txt file with wavelength and intensity columns
+#Argument: wavelenght of the experimental second band in nm
+#Output:  'cdspectrum_shifted_calcul1' txt file with a wavelength shift calculated in eV to match with the experimental second band.
+
 import numpy as np
 import sys
 

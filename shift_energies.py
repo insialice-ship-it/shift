@@ -1,3 +1,6 @@
+#Input: 'cdspectrum' txt file with wavelength and intensity columns. 
+#Output:  'cdspectrum_shifted' txt file with a wavelength shift of (argument) eV.
+
 import numpy as np
 import sys
 
@@ -49,6 +52,5 @@ except (IndexError, ValueError):
     print(f"Aucune valeur saisie, utilisation du shift par défaut : {shift} eV")
     
 donnees_decalees=decalage("cdspectrum", shift)
-print (donnees_decalees)
 np.savetxt("cdspectrum_shifted", donnees_decalees, delimiter=" ")
 

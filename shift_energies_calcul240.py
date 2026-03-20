@@ -1,3 +1,6 @@
+#Input: 'cdspectrum' .txt file with wavelength and intensity columns.
+#Output:  'cdspectrum_shifted_calcul1' .txt file with a wavelength shift calculated in eV to align the midpoint between the fourth and fifth bands to 240nm.
+
 import numpy as np
 import sys
 
