@@ -53,6 +53,9 @@ x_grid_nm = np.linspace(min(x_data) - 20, max(x_data) + 20, 1000)
 x_grid_ev = hc / x_grid_nm
 y_convoluted = np.zeros_like(x_grid_nm)
 
+#prefactor= 1.0 / (22.97 * sigma_ev ) 
+prefactor= 1.0 / (22.97 * sigma_ev * np.sqrt(2 * np.pi)) 
+
 # --- 4. Calcul de la convolution ---
 for lambda_i, y_i in zip(x_data, y_data):
     # Position du pic en eV
@@ -67,10 +70,10 @@ for lambda_i, y_i in zip(x_data, y_data):
 plt.figure(figsize=(8, 6))
 
 # Bâtons originaux
-plt.vlines(x_data, 0, y_data, color='black', alpha=0.5, label='Transitions (bâtons)')
+plt.vlines(x_data, 0, y_data*prefactor, color='black', alpha=0.5, label='Transitions (bâtons)')
 
 # Courbe convoluée
-plt.plot(x_grid_nm, y_convoluted, color='red', 
+plt.plot(x_grid_nm, y_convoluted*prefactor, color='red', 
          label=f'Convolution (FWHM = {fwhm_ev} eV)')
 
 nom_molecule = os.path.basename(os.path.dirname(os.getcwd()))

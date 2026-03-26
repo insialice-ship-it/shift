@@ -50,7 +50,10 @@ except Exception as e:
 x_grid_nm = np.linspace(min(x_data) - 20, max(x_data) + 20, 1000)
 # On convertit la grille en eV pour que le sigma_ev soit applicable
 x_grid_ev = hc / x_grid_nm
-y_convoluted = np.zeros_like(x_grid_nm)
+y_convoluted = np.zeros_like(x_grid_nm) 
+
+#prefactor= 1.0 / (22.97 * sigma_ev ) 
+prefactor= 1.0 / (22.97 * sigma_ev * np.sqrt(2 * np.pi)) 
 
 # --- 4. Calcul de la convolution ---
 for lambda_i, y_i in zip(x_data, y_data):
@@ -60,13 +63,13 @@ for lambda_i, y_i in zip(x_data, y_data):
     # Calcul de la gaussienne dans le domaine des énergies
     # On utilise le facteur -0.5 correspondant à la définition standard de sigma
     gauss = y_i * np.exp(-0.5 * ((x_grid_ev - energy_i) / sigma_ev)**2)
-    y_convoluted += gauss
+    y_convoluted += gauss*prefactor
 
 # --- 5. Affichage ---
 plt.figure(figsize=(8, 6))
 
 # Bâtons originaux
-plt.vlines(x_data, 0, y_data, color='black', alpha=0.5, label='Transitions (bâtons)')
+plt.vlines(x_data, 0, y_data*prefactor, color='black', alpha=0.5, label='Transitions (bâtons)')
 
 # Courbe convoluée
 plt.plot(x_grid_nm, y_convoluted, color='red', 

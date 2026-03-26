@@ -1,6 +1,6 @@
 #Imput : 'cdspectrum_shifted' a txt with a wavelengh and intensity columns
 #	 'exp.csv' experimental data
-#Argument : FWHM parameter un eV (defaulting to eV if not specified)
+#Argument : FWHM parameter in eV (defaulting to 0.3 eV if not specified)
 #Output : 'convolution.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
 
 import numpy as np
@@ -9,7 +9,7 @@ import os
 import sys #
 import pandas as pd
 
-# Paramètres
+# Parametres
 hc = 1239.842  # Constante de conversion nm <-> eV
 fwhm_ev = 0.3  # Ta valeur d'entrée en eV
 
@@ -20,7 +20,6 @@ except (IndexError, ValueError):
     # Valeur par défaut si tu oublies de taper le chiffre
     fwhm_ev = 0.3
     print(f"Aucune valeur saisie, utilisation du FWHM par défaut : {fwhm_ev} eV")
-
 
 # Conversion FWHM (eV) -> Sigma (eV)
 # Note : La formule standard est exp(-0.5 * (delta/sigma)**2)
@@ -52,6 +51,9 @@ x_grid_nm = np.linspace(min(x_data) - 20, max(x_data) + 20, 1000)
 x_grid_ev = hc / x_grid_nm
 y_convoluted = np.zeros_like(x_grid_nm)
 
+#prefactor= 1.0 / (22.97 * sigma_ev ) 
+prefactor= 1.0 / (22.97 * sigma_ev * np.sqrt(2 * np.pi)) 
+
 # Calcul de la convolution
 for lambda_i, y_i in zip(x_data, y_data):
     # Position du pic en eV
@@ -60,13 +62,13 @@ for lambda_i, y_i in zip(x_data, y_data):
     # Calcul de la gaussienne dans le domaine des énergies
     # On utilise le facteur -0.5 correspondant à la définition standard de sigma
     gauss = y_i * np.exp(-0.5 * ((x_grid_ev - energy_i) / sigma_ev)**2)
-    y_convoluted += gauss
+    y_convoluted += gauss*prefactor
 
 # Affichage
 plt.figure(figsize=(8, 6))
 
 # Bâtons originaux
-plt.vlines(x_data, 0, y_data, color='black', alpha=0.5, label='Transitions (bâtons)')
+plt.vlines(x_data, 0, y_data*prefactor, color='black', alpha=0.5, label='Transitions (bâtons)')
 
 # Courbe convoluée
 plt.plot(x_grid_nm, y_convoluted, color='red', 
