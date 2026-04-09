@@ -1,16 +1,14 @@
-#Imput : 'cdspectrum_shifted_calcul1' a txt with a wavelengh and intensity columns
-#	 'exp.csv' experimental data
-#Argument : FWHM parameter un eV (defaulting to eV if not specified)
-#Output : 'convolution_calcul1.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
+#The same program as "convolution.py" with the exception that the imput file name is "cdspectrum_shifted_calcul1" and the output file name is 'convolution_calcul1.png'
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys #
 import pandas as pd
 
-# --- 1. Paramètres ---
+#
 hc = 1239.842  # Constante de conversion nm <-> eV
-fwhm_ev = 0.3  # Ta valeur d'entrée en eV
 
 try:
     fwhm_ev = float(sys.argv[1])
