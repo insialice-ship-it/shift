@@ -30,8 +30,8 @@ def lire_fichier_donnees(nom_fichier):
 
 donnees_index = lire_fichier_donnees('conf_index')
 
-energies = np.array([float(row[0]) for row in donnees_index])
-fichiers_cd = [row[1] for row in donnees_index]
+energies = np.array([float(row[1]) for row in donnees_index])
+fichiers_cd = [row[0] for row in donnees_index]
 
 print(energies)
 print(fichiers_cd)
