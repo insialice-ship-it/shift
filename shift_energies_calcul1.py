@@ -1,76 +1,102 @@
-#Input: 'cdspectrum' txt file with wavelength and intensity columns
-#Argument: wavelenght of the experimental first band in nm
-#Output:  'cdspectrum_shifted_calcul1' txt file with a wavelength shift calculated in eV to match with the experimental first band.
+"""
+CD SPECTRUM ALIGNMENT TO EXPERIMENTAL FIRST BAND
+------------------------------------------------
+DESCRIPTION:
+  Calculates an energy shift (eV) based on the difference between 
+  the first wavelength in the theoretical file and a user-specified 
+  experimental peak wavelength.
+
+INPUTS:
+  1. 'cdspectrum' : Text file with wavelength (nm) and intensity.
+  2. CLI Argument  : Wavelength of the experimental first band (nm).
+
+OUTPUT:
+  1. 'cdspectrum_shifted_calcul1' : Shifted spectrum file.
+------------------------------------------------
+"""
 
 import numpy as np
 import sys
 
-def lire_fichier_donnees(nom_fichier):
-    donnees_nettoyees = []
-    
+# Constant for h*c in eV·nm for direct conversion
+HC_EV_NM = 1239.84193  
+
+def read_data_file(file_name):
+    """Parses the input file, ignoring comments and empty lines."""
+    cleaned_data = []
     try:
-        with open(nom_fichier, 'r', encoding='utf-8') as fichier:
-            for ligne in fichier:
-                # 1. On retire les espaces inutiles au début et à la fin (strip)
-                ligne = ligne.strip()
-                
-                # 2. On ignore les lignes vides ou celles qui commencent par '#'
-                if not ligne or ligne.startswith('#'):
+        with open(file_name, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
                     continue
-                
-                # 3. .split() sans argument gère "un ou plusieurs" espaces
-                valeurs = [float(i) for i in ligne.split()]
-                donnees_nettoyees.append(valeurs)
-
-        return donnees_nettoyees
-
+                # Split and convert to float
+                values = [float(i) for i in line.split()]
+                cleaned_data.append(values)
+        return cleaned_data
     except FileNotFoundError:
-        print(f"Erreur : Le fichier '{nom_fichier}' est introuvable.")
+        print(f"Error: File '{file_name}' not found.")
         return []
 
-hc_eV_nm = 1239.84193  # h*c en eV·nm
-
 def nm_to_eV(wavelength_nm):
-    """Convertit une longueur d'onde en nm vers une énergie en eV."""
-    return hc_eV_nm / wavelength_nm
+    """Converts wavelength (nm) to energy (eV)."""
+    return HC_EV_NM / wavelength_nm
 
 def eV_to_nm(energy_eV):
-    """Convertit une énergie en eV vers une longueur d'onde en nm."""
-    return hc_eV_nm / energy_eV
+    """Converts energy (eV) to wavelength (nm)."""
+    return HC_EV_NM / energy_eV
 
-def calcul_shift(nom_fichier, pic_exp):
-	donnees = lire_fichier_donnees(nom_fichier)
+def calculate_shift(file_name, exp_peak_nm):
+    """
+    Calculates the energy shift required to align the first band 
+    of the file with the experimental peak.
+    """
+    data = read_data_file(file_name)
+    if not data:
+        sys.exit(1)
 
-	ev_calc = nm_to_eV(donnees[0][0])
-	ev_exp = nm_to_eV(pic_exp)
-	shift = ev_exp - ev_calc
-	return shift
-	
-def decalage(nom_fichier, decalage):
-	donnees = lire_fichier_donnees(nom_fichier)
-	h=6.626*10**(-34)
-	c=3*10**8
-	energies = []
-	energies_decalees = []
-	lambdas_decalees = []
-	
+    # Convert the first wavelength in the file to energy (eV)
+    theoretical_ev = nm_to_eV(data[0][0])
+    # Convert experimental wavelength to energy (eV)
+    experimental_ev = nm_to_eV(exp_peak_nm)
+    
+    # Calculate the difference (Shift)
+    return experimental_ev - theoretical_ev
 
-	for i in range (len(donnees)):
-		energies.append(nm_to_eV(donnees[i][0]))
-		energies_decalees.append(energies[i]+decalage)
-		lambdas_decalees.append(eV_to_nm(energies_decalees[i]))
-		donnees[i][0]=lambdas_decalees[i]
-	return donnees
+def apply_shift(file_name, shift_val):
+    """Applies the calculated energy shift to all data points."""
+    data = read_data_file(file_name)
+    
+    for row in data:
+        # Energy domain conversion and shift
+        current_ev = nm_to_eV(row[0])
+        shifted_ev = current_ev + shift_val
+        # Return to wavelength domain
+        row[0] = eV_to_nm(shifted_ev)
+        
+    return data
 
+# --- Main Execution ---
+
+# Check for experimental wavelength argument
 try:
-	premier_pic = float(sys.argv[1])
-	print(f"longueur d'onde du premier pic = {premier_pic} nm")
+    exp_first_peak = float(sys.argv[1])
+    print(f"Target experimental first peak: {exp_first_peak} nm")
 except (IndexError, ValueError):
-	print(f"Aucune valeur saisie")
-	sys.exit(1)
-	
-shift = calcul_shift("cdspectrum", premier_pic)
-print (f"On calcule un shift de {shift} eV")
-donnees_decalees=decalage("cdspectrum", shift)
-np.savetxt("cdspectrum_shifted_calcule", donnees_decalees, delimiter="  ")
+    print("Error: Please provide the experimental wavelength as an argument.")
+    print("Example: python script.py 215.5")
+    sys.exit(1)
+
+# 1. Determine shift
+computed_shift = calculate_shift("cdspectrum", exp_first_peak)
+print(f"Calculated Shift: {computed_shift:.6f} eV")
+
+# 2. Apply shift to data
+final_data = apply_shift("cdspectrum", computed_shift)
+
+# 3. Save output
+if final_data:
+    np.savetxt("cdspectrum_shifted_calcul1", final_data, delimiter="  ",
+               header=f"Wavelength(nm)_Shifted_to_{exp_first_peak}nm Intensity")
+    print("Success: 'cdspectrum_shifted_calcul1' generated.")
 
