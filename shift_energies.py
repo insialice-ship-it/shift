@@ -1,56 +1,93 @@
-#Input: 'cdspectrum' txt file with wavelength and intensity columns. 
-#Output:  'cdspectrum_shifted' txt file with a wavelength shift of (argument) eV.
+"""
+CD SPECTRUM WAVELENGTH SHIFTER
+------------------------------
+DESCRIPTION:
+  Shifts a CD spectrum by a specific energy value (in eV). 
+  Since the shift is applied in the energy domain, wavelengths (nm) 
+  are converted to eV, shifted, and then converted back to nm.
+
+INPUTS:
+  1. 'cdspectrum' : Text file with wavelength (col 1) and intensity (col 2).
+  2. Command Line Argument  : Float value representing the shift in eV.
+
+OUTPUT:
+  1. 'cdspectrum_shifted' : Text file with shifted wavelengths.
+------------------------------
+"""
 
 import numpy as np
 import sys
 
-def lire_fichier_donnees(nom_fichier):
-    donnees_nettoyees = []
-    
+def read_data_file(file_name):
+    """Parses the input file, ignoring comments and empty lines."""
+    cleaned_data = []
     try:
-        with open(nom_fichier, 'r', encoding='utf-8') as fichier:
-            for ligne in fichier:
-                # 1. On retire les espaces inutiles au début et à la fin (strip)
-                ligne = ligne.strip()
+        with open(file_name, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
                 
-                # 2. On ignore les lignes vides ou celles qui commencent par '#'
-                if not ligne or ligne.startswith('#'):
+                # Ignore empty lines or comments
+                if not line or line.startswith('#'):
                     continue
                 
-                # 3. .split() sans argument gère "un ou plusieurs" espaces
-                valeurs = [float(i) for i in ligne.split()]
-                donnees_nettoyees.append(valeurs)
+                # Convert strings to floats and append to list
+                values = [float(i) for i in line.split()]
+                cleaned_data.append(values)
 
-        return donnees_nettoyees
+        return cleaned_data
 
     except FileNotFoundError:
-        print(f"Erreur : Le fichier '{nom_fichier}' est introuvable.")
+        print(f"Error: File '{file_name}' not found.")
         return []
 
-def decalage(nom_fichier, decalage):
-	donnees = lire_fichier_donnees(nom_fichier)
-	h=6.626*10**(-34)
-	c=3*10**8
-	energies = []
-	energies_decalees = []
-	lambdas_decalees = []
+def apply_shift(file_name, shift_ev):
+    """Converts nm to eV, applies the shift, and converts back to nm."""
+    data = read_data_file(file_name)
+    
+    # Physics Constants
+    h = 6.626e-34      # Planck's constant (J·s)
+    c = 3.0e8          # Speed of light (m/s)
+    e_charge = 1.6e-19 # Elementary charge (C) to convert J to eV
+    
+    # Conversion factor for convenience: E(eV) = HC_FACTOR / lambda(nm)
+    # hc / e_charge * 1e9 (to account for nanometers)
+    HC_FACTOR = (h * c * 1e9) / e_charge
 
+    for row in data:
+        # Original wavelength in nm
+        wavelength_nm = row[0]
+        
+        # 1. Convert wavelength (nm) to energy (eV)
+        energy_ev = HC_FACTOR / wavelength_nm
+        
+        # 2. Apply the shift
+        shifted_energy_ev = energy_ev + shift_ev
+        
+        # 3. Convert shifted energy back to wavelength (nm)
+        # Handle potential division by zero if energy becomes 0
+        if shifted_energy_ev != 0:
+            row[0] = HC_FACTOR / shifted_energy_ev
+        else:
+            row[0] = 0.0
 
-	for i in range (len(donnees)):
-		energies.append(h*c*10**(9)/donnees[i][0]/(1.6*10**(-19)))
-		energies_decalees.append(energies[i]+decalage)
-		lambdas_decalees.append(h*c*10**(9)/(1.6*(10**(-19)*energies_decalees[i])))
-		donnees[i][0]=lambdas_decalees[i]
-	return donnees
+    return data
 
+# --- Main Execution ---
+
+# Get the shift value from the command line arguments
 try:
     shift = float(sys.argv[1])
-    print(f"shift = {shift} eV")
+    print(f"Shift applied: {shift} eV")
 except (IndexError, ValueError):
-    # Valeur par défaut si tu oublies de taper le chiffre
+    # Default value if no argument is provided or if input is invalid
     shift = -0.5
-    print(f"Aucune valeur saisie, utilisation du shift par défaut : {shift} eV")
+    print(f"No valid input provided. Using default shift: {shift} eV")
     
-donnees_decalees=decalage("cdspectrum", shift)
-np.savetxt("cdspectrum_shifted", donnees_decalees, delimiter=" ")
+# Process the data
+shifted_data = apply_shift("cdspectrum", shift)
 
+# Save the result to a text file
+if shifted_data:
+    np.savetxt("cdspectrum_shifted", shifted_data, delimiter=" ", 
+               header="Wavelength(nm)_Shifted Intensity")
+    print("Success: 'cdspectrum_shifted' has been generated.")
