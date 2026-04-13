@@ -1,4 +1,4 @@
-#Imput : 'cdspectrum_shifted' : text fuke with two columns (wavelengh in nm and intensity)
+#Input : 'cdspectrum_shifted' : text fuke with two columns (wavelengh in nm and intensity)
 #	     'exp.csv' : experimental data (optional)
 #Command-line argument : Full Width at Half Maximum (FWHM) parameter in eV (defaul : 0.3 eV)
 #Output : 'convolution.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
