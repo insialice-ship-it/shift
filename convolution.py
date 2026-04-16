@@ -2,6 +2,7 @@
 #	     'exp.csv' : experimental data (optional)
 #Command-line argument : Full Width at Half Maximum (FWHM) parameter in eV (defaul : 0.3 eV)
 #Output : 'convolution.png' a plot with the original sticks, the gaussian convoluted curve (red line) and experimental reference (dashed black line)
+#         the graph is named after parent directory (two levels up)
 
 # -----------------------------------------------------------------------------
 import numpy as np
